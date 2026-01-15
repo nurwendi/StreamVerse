@@ -1,0 +1,10 @@
+node_modules
+media/*
+!media/.gitkeep
+public/uploads/*
+!public/uploads/default_live.jpg
+!public/uploads/logo.png
+!public/uploads/favicon.png
+*.log
+.DS_Store
+Thumbs.db

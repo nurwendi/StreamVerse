@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vidio Clone</title>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0f0f0f;
+            --header-bg: #1a1a1a;
+            --card-bg: #222;
+            --text-color: #fff;
+            --highlight: #f1c40f;
+            /* Yellow Theme */
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            overflow-x: hidden;
+            padding-top: 60px;
+            /* Header space */
+        }
+
+        /* Header */
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: var(--header-bg);
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--highlight);
+            cursor: pointer;
+            margin-right: 40px;
+        }
+
+        .nav-link {
+            font-weight: 500;
+            margin-right: 20px;
+            cursor: pointer;
+            color: #ccc;
+            transition: 0.2s;
+        }
+
+        .nav-link:hover {
+            color: #fff;
+        }
+
+        .search-bar {
+            flex-grow: 1;
+            max-width: 500px;
+            display: flex;
+            background: #2a2a2a;
+            border-radius: 4px;
+            padding: 5px 10px;
+            margin-right: 20px;
+        }
+
+        .search-bar input {
+            background: transparent;
+            border: none;
+            color: #fff;
+            width: 100%;
+            outline: none;
+        }
+
+        .user-actions {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .btn {
+            background: var(--highlight);
+            color: #fff;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        /* --- Home View --- */
+        #home-view {
+            padding-bottom: 50px;
+        }
+
+        /* Hero */
+        .hero {
+            height: 60vh;
+            background: linear-gradient(to top, var(--bg-color), transparent), url('https://placehold.co/1920x1080/222/999?text=Featured+Content') center/cover;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 40px;
+        }
+
+        .hero-title {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+        }
+
+        .hero-actions .btn {
+            font-size: 1.2rem;
+            padding: 10px 24px;
+        }
+
+        /* Rails */
+        .rail-section {
+            margin-top: 30px;
+            padding: 0 20px;
+        }
+
+        .rail-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            border-left: 4px solid var(--highlight);
+            padding-left: 10px;
+        }
+
+        .rail-container {
+            display: flex;
+            gap: 15px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+            scroll-behavior: smooth;
+        }
+
+        .rail-container::-webkit-scrollbar {
+            height: 6px;
+        }
+
+        .rail-container::-webkit-scrollbar-thumb {
+            background: #444;
+            border-radius: 3px;
+        }
+
+        .card {
+            min-width: 250px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .card:hover {
+            transform: scale(1.03);
+        }
+
+        /* Video aspect ratio 16:9 ~ 1.77 */
+        .card-thumb {
+            width: 100%;
+            aspect-ratio: 16/9;
+            background-color: var(--card-bg);
+            background-size: cover;
+            background-position: center;
+            border-radius: 6px;
+            position: relative;
+        }
+
+        .badge {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            background: red;
+            color: white;
+            padding: 2px 6px;
+            font-size: 0.7rem;
+            border-radius: 3px;
+        }
+
+        .card-title {
+            margin-top: 8px;
+            font-weight: 500;
+            font-size: 0.95rem;
+            line-height: 1.2;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            line-clamp: 2;
+            /* Fix lint */
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .card-meta {
+            font-size: 0.8rem;
+            color: #aaa;
+            margin-top: 4px;
+        }
+
+        /* --- Watch View --- */
+        #watch-view {
+            display: none;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .video-player-container {
+            width: 100%;
+            aspect-ratio: 16/9;
+            background: #000;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        video {
+            width: 100%;
+            height: 100%;
+        }
+
+        .watch-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+
+        .watch-meta {
+            color: #aaa;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 20px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <div class="logo" onclick="goHome()">VIDIO+</div>
+        <div class="nav-link" onclick="goHome()">Home</div>
+        <div class="nav-link">Live</div>
+        <div class="nav-link">Movies</div>
+        <div class="search-bar">
+            <input type="text" placeholder="Search movies, live stream...">
+        </div>
+        <div class="user-actions" id="user-actions">
+            <!-- Populated by JS -->
+            <button class="btn" onclick="location.href='/login.html'">Login</button>
+        </div>
+    </header>
+
+    <!-- HOME VIEW -->
+    <div id="home-view">
+        <div class="hero" id="hero-bg">
+            <div class="hero-title" id="hero-title">Discover Unlimited Entertainment</div>
+            <div class="hero-actions">
+                <button class="btn" id="hero-btn"
+                    onclick="document.getElementById('vod-rail').scrollIntoView({behavior:'smooth'})">Browse
+                    Now</button>
+            </div>
+        </div>
+
+        <!-- Live Now Rail -->
+        <div class="rail-section" id="live-section" style="display:none;">
+            <div class="rail-title">Live Now</div>
+            <div class="rail-container" id="live-rail">
+                <!-- Fetch items -->
+            </div>
+        </div>
+
+        <!-- VOD Rail -->
+        <div class="rail-section">
+            <div class="rail-title">Recent Movies & Uploads</div>
+            <div class="rail-container" id="vod-rail">
+                <div style="color:#666; padding:20px;">Loading content...</div>
+                <!-- Fetch items -->
+            </div>
+        </div>
+    </div>
+
+    <!-- WATCH VIEW -->
+    <div id="watch-view">
+        <div class="video-player-container">
+            <video id="main-video" controls autoplay playsinline></video>
+        </div>
+        <div class="watch-title" id="player-title">Content Title</div>
+        <div class="watch-meta" id="player-desc">Description goes here...</div>
+    </div>
+
+    <script>
+        // --- Navigation ---
+        function goHome() {
+            document.getElementById('home-view').style.display = 'block';
+            document.getElementById('watch-view').style.display = 'none';
+            // Stop player
+            const v = document.getElementById('main-video');
+            v.pause();
+            v.src = "";
+            window.scrollTo(0, 0);
+        }
+
+        function goWatch(title, desc, url, isLive = false) {
+            document.getElementById('home-view').style.display = 'none';
+            document.getElementById('watch-view').style.display = 'block';
+
+            document.getElementById('player-title').innerText = title;
+            document.getElementById('player-desc').innerText = desc || 'No description.';
+
+            loadPlayer(url, isLive);
+            window.scrollTo(0, 0);
+        }
+
+        // --- Player Logic ---
+        const video = document.getElementById('main-video');
+        let hls;
+
+        function loadPlayer(url, isLive) {
+            if (hls) hls.destroy();
+
+            if (isLive && Hls.isSupported()) {
+                hls = new Hls();
+                hls.loadSource(url);
+                hls.attachMedia(video);
+                hls.on(Hls.Events.MANIFEST_PARSED, function () {
+                    video.play().catch(e => console.log('Autoplay blocked', e));
+                });
+            } else {
+                // MP4 or Native HLS
+                video.src = url;
+                video.play().catch(e => console.log('Autoplay blocked', e));
+            }
+        }
+
+        // --- Fetch Data ---
+
+        let hasLiveStream = false;
+
+        // 1. Live Streams
+        function loadLive() {
+            // Fetch settings for thumbnail
+            fetch('/api/public-settings').then(r => r.json()).then(settings => {
+                fetch('/api/streams')
+                    .then(res => res.json())
+                    .then(data => {
+                        const section = document.getElementById('live-section');
+                        const container = document.getElementById('live-rail');
+
+                        if (!data.success || data.streams.length === 0) {
+                            section.style.display = "none";
+                            hasLiveStream = false;
+                            return;
+                        }
+
+                        hasLiveStream = true;
+                        section.style.display = "block";
+                        container.innerHTML = '';
+
+                        // Determine Thumbnail
+                        let thumb = settings.liveThumbnail || settings.logoUrl || 'https://placehold.co/320x180/000000/red?text=LIVE';
+
+                        // Prioritize First Live Stream in Hero
+                        const mainStream = data.streams[0];
+                        updateHero({
+                            title: mainStream.name,
+                            description: "Live Broadcast",
+                            videoUrl: mainStream.playbackUrl,
+                            thumbnailUrl: thumb,
+                            isLive: true
+                        }, true);
+
+                        data.streams.forEach(stream => {
+                            const card = document.createElement('div');
+                            card.className = 'card';
+                            card.innerHTML = `
+                                <div class="card-thumb" style="background-image: url('${thumb}');">
+                                    <div class="badge">LIVE</div>
+                                </div>
+                                <div class="card-title">${stream.name}</div>
+                                <div class="card-meta">Live Stream</div>
+                            `;
+                            card.onclick = () => goWatch(stream.name, "Live Broadcast", stream.playbackUrl, true);
+                            container.appendChild(card);
+                        });
+                    });
+            }).catch(() => { });
+        }
+
+        // 2. VOD Content
+        function loadVOD() {
+            fetch('/api/content')
+                .then(res => res.json())
+                .then(data => {
+                    const container = document.getElementById('vod-rail');
+                    if (!data || data.length === 0) {
+                        container.innerHTML = '<div style="padding:10px; color:#555">No content uploaded yet.</div>';
+                        return;
+                    }
+
+                    // Update Hero with latest ONLY if no live stream is active
+                    // This is a simple check; timing might vary but mostly works
+                    if (!hasLiveStream) {
+                        updateHero(data[0], false);
+                    }
+
+                    container.innerHTML = '';
+                    // Sort newest first
+                    data.sort((a, b) => b.createdAt - a.createdAt).forEach(item => {
+                        const card = document.createElement('div');
+                        card.className = 'card';
+
+                        // Use thumb or placeholder
+                        const bg = item.thumbnailUrl ? `url('${item.thumbnailUrl}')` : `url('https://placehold.co/320x180/333/999?text=${encodeURIComponent(item.title)}')`;
+
+                        card.innerHTML = `
+                            <div class="card-thumb" style="background-image: ${bg};">
+                                ${item.category === 'movies' ? '<div class="badge" style="background:blue;">MOVIE</div>' : ''}
+                            </div>
+                            <div class="card-title">${item.title}</div>
+                            <div class="card-meta">${item.category} • ${new Date(item.createdAt).toLocaleDateString()}</div>
+                        `;
+                        card.onclick = () => goWatch(item.title, item.description, item.videoUrl, false);
+                        container.appendChild(card);
+                    });
+                });
+        }
+
+        function updateHero(item, isLive = false) {
+            if (!item) return;
+
+            // Handle item.isLive if passed in object or param
+            const live = isLive || item.isLive;
+
+            document.getElementById('hero-title').innerText = item.title;
+            const btn = document.getElementById('hero-btn');
+
+            if (live) {
+                btn.innerText = "Watch Live";
+                btn.style.backgroundColor = "#e74c3c"; // Keep Live Red for urgency/standard? Or Yellow? User said "Theme Yellow". Let's make it Orange-Red for Live but Yellow for standard.
+                // Actually, standard "Live" badges are almost always Red. I will keep Live Red or maybe Darker Orange. 
+                // Let's stick to the request "Theme Yellow".
+                // But "Live" usually implies Red.
+                // I will update the "Watch Movie" to use the new highlight var or just yellow.
+                // Let's use the variable logic in CSS if possible, but here it's inline JS.
+                // I'll make Watch Movie Yellow. Watch Live Red (standard).
+                btn.style.backgroundColor = "#e74c3c";
+            } else {
+                btn.innerText = "Watch Movie";
+                btn.style.backgroundColor = "#f1c40f"; // Yellow
+                btn.style.color = "#000"; // Black text on yellow for contrast
+            }
+
+            btn.onclick = () => goWatch(item.title, item.description, item.videoUrl, live);
+
+            // Hero background
+            let bgUrl = item.thumbnailUrl;
+            if (!bgUrl) {
+                if (live) bgUrl = 'https://placehold.co/1920x1080/000/f00?text=LIVE+NOW';
+                else bgUrl = 'https://placehold.co/1920x1080/222/999?text=Featured+Content';
+            }
+
+            document.getElementById('hero-bg').style.backgroundImage = `linear-gradient(to top, var(--bg-color), transparent), url('${bgUrl}')`;
+        }
+
+        // 3. Branding & Auth
+        function applySettings() {
+            fetch('/api/public-settings').then(res => res.json()).then(settings => {
+                // Apply Branding
+                if (settings.appName) document.title = settings.appName;
+
+                if (settings.faviconUrl) {
+                    let link = document.querySelector("link[rel~='icon']");
+                    if (!link) {
+                        link = document.createElement('link');
+                        link.rel = 'icon';
+                        document.getElementsByTagName('head')[0].appendChild(link);
+                    }
+                    link.href = settings.faviconUrl;
+                }
+
+                const logoEl = document.querySelector('.logo');
+                if (logoEl) {
+                    if (settings.logoUrl) {
+                        logoEl.innerHTML = `<img src="${settings.logoUrl}" alt="Logo" style="height:40px; vertical-align:middle;">`;
+                    } else {
+                        logoEl.innerText = settings.appName || 'VIDIO+';
+                    }
+                }
+            }).catch(e => {
+                console.log("Error loading public settings", e);
+            });
+        }
+
+        // 4. Auth Check (Admin Button)
+        function checkAuth() {
+            fetch('/api/settings').then(res => {
+                if (res.status === 200) {
+                    const container = document.getElementById('user-actions');
+                    container.innerHTML = `
+                        <div style="width:32px; height:32px; background:#555; border-radius:50%; display:flex; alignItems:center; justifyContent:center; cursor:pointer;" onclick="location.href='/admin.html'">
+                            <svg viewBox="0 0 24 24" width="20" height="20" fill="#fff"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                        </div>
+                     `;
+                }
+            }).catch(() => { });
+        }
+        // Init
+        loadLive();
+        loadVOD();
+        applySettings();
+        checkAuth();
+
+        // Poll Live
+        setInterval(loadLive, 10000);
+
+    </script>
+</body>
+
+</html>

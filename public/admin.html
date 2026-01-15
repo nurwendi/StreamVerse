@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stream Admin</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #1a1a1a;
+            color: #eee;
+            margin: 0;
+            display: flex;
+            height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 250px;
+            background: #252525;
+            border-right: 1px solid #333;
+            display: flex;
+            flex-direction: column;
+            padding: 20px 0;
+            flex-shrink: 0;
+        }
+
+        .sidebar-header {
+            padding: 0 20px 20px;
+            border-bottom: 1px solid #333;
+            margin-bottom: 10px;
+        }
+
+        .sidebar-header h2 {
+            margin: 0;
+            font-size: 1.2rem;
+            color: #fff;
+        }
+
+        .nav-item {
+            padding: 12px 20px;
+            cursor: pointer;
+            color: #aaa;
+            transition: background 0.2s, color 0.2s;
+            display: flex;
+            align-items: center;
+        }
+
+        .nav-item:hover {
+            background: #333;
+            color: #fff;
+        }
+
+        .nav-item.active {
+            background-color: #f1c40f;
+            color: #000;
+        }
+
+        .logout-btn {
+            margin-top: auto;
+            border-top: 1px solid #333;
+            padding-top: 10px;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex-grow: 1;
+            padding: 30px;
+            overflow-y: auto;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            max-width: 800px;
+        }
+
+        h1 {
+            margin-top: 0;
+            border-bottom: 1px solid #444;
+            padding-bottom: 15px;
+            font-size: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #ccc;
+        }
+
+        input[type="text"],
+        input[type="password"],
+        textarea {
+            width: 100%;
+            padding: 10px;
+            background: #333;
+            border: 1px solid #444;
+            border-radius: 6px;
+            color: #fff;
+            box-sizing: border-box;
+        }
+
+        input:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #007acc;
+        }
+
+        .btn {
+            background-color: #007acc;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background 0.2s;
+        }
+
+        .btn:hover {
+            background-color: #0062a3;
+        }
+
+        .message {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 6px;
+            display: none;
+        }
+
+        .success {
+            background: #155724;
+            color: #d4edda;
+        }
+
+        .error {
+            background: #721c24;
+            color: #f8d7da;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2>Stream Admin</h2>
+        </div>
+        <div class="nav-item active" onclick="switchTab('general')">General</div>
+        <div class="nav-item" onclick="switchTab('restream')">Restream</div>
+        <div class="nav-item" onclick="switchTab('account')">Account</div>
+        <div class="nav-item" onclick="switchTab('content-manager')">Content Manager</div>
+
+        <div class="logout-btn">
+            <div class="nav-item" style="color: #ff4444;" onclick="logout()">Logout</div>
+            <a href="/" class="nav-item" style="text-decoration:none;">&larr; View Player</a>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div id="msg-global" class="message" style="margin-bottom: 20px;"></div>
+
+        <!-- Live Stream Config Tab -->
+        <div id="general" class="tab-content active">
+            <h1>Live Stream Configuration</h1>
+
+            <div
+                style="background:#252525; padding:15px; border-radius:6px; margin-bottom:20px; border:1px solid #444;">
+                <h3 style="margin-top:0; color:#f1c40f;">App Branding</h3>
+                <div class="form-group">
+                    <label>App Name (Browser Title)</label>
+                    <input type="text" id="appName" placeholder="Vidio Clone">
+                </div>
+                <div class="form-group">
+                    <label>App Logo (Header)</label>
+                    <div style="display:flex; gap:10px;">
+                        <input type="text" id="logoUrl" placeholder="/uploads/..." readonly
+                            style="background:#111; color:#aaa;">
+                        <button class="btn" onclick="triggerUpload('logoUrl', this)"
+                            style="background:#555;">Upload</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Favicon URL</label>
+                    <div style="display:flex; gap:10px;">
+                        <input type="text" id="faviconUrl" placeholder="/uploads/..." readonly
+                            style="background:#111; color:#aaa;">
+                        <button class="btn" onclick="triggerUpload('faviconUrl', this)"
+                            style="background:#555;">Upload</button>
+                    </div>
+                </div>
+            </div>
+
+            <div
+                style="background:#252525; padding:15px; border-radius:6px; margin-bottom:20px; border:1px solid #444;">
+                <h3 style="margin-top:0; color:#f1c40f;">Connection Details</h3>
+
+                <div class="form-group">
+                    <label>Stream Title</label>
+                    <input type="text" id="title" placeholder="Live Stream Title">
+                </div>
+
+                <div class="form-group">
+                    <label>Stream Description</label>
+                    <textarea id="description" rows="3" placeholder="Description of your broadcast..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Running Text (Ticker)</label>
+                    <input type="text" id="runningText" placeholder="Breaking News...">
+                </div>
+
+                <div class="form-group">
+                    <label>RTMP Server URL (Address)</label>
+                    <div style="display:flex; gap:10px;">
+                        <input type="text" id="rtmpUrl" value="rtmp://localhost/live/" readonly
+                            style="background:#111; color:#aaa;">
+                        <button class="btn" onclick="copyToClipboard(document.getElementById('rtmpUrl').value)"
+                            style="width:auto; padding:0 15px;">Copy</button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Stream Key</label>
+                    <div style="display:flex; gap:10px;">
+                        <input type="text" id="streamKey" placeholder="stream">
+                        <button class="btn" onclick="generateKey()"
+                            style="width:auto; padding:0 15px; background:#555;">Gen</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Default Live Thumbnail</label>
+                <div style="display:flex; gap:10px;">
+                    <input type="text" id="liveThumbnail" placeholder="/uploads/..." readonly
+                        style="background:#222; color:#777;">
+                    <button class="btn" onclick="triggerUpload('liveThumbnail', this)"
+                        style="background:#555;">Upload</button>
+                </div>
+                <small style="color:#666;">This image will be shown when you are live (unless overriden).</small>
+            </div>
+
+            <div class="form-group" style="display:none;">
+                <!-- Hidden LOGO for now if user doesn't want it explicit, or we keep it? User asked for thumbnail options. Logo is separate. Keeping in code but hidden or separate? User didn't ask to remove logo but asked for thumbnail. I'll flip Logo to this new Thumbnail field logic mostly. -->
+                <label>Channel Logo (Avatar)</label>
+                <div style="display:flex; gap:10px;">
+                    <input type="text" id="logoUrl">
+                    <button class="btn" onclick="triggerUpload('logoUrl', this)">Upload</button>
+                </div>
+            </div>
+
+            <button class="btn" onclick="saveSettings()">Save Configuration</button>
+        </div>
+
+        <!-- Restream Tab -->
+        <div id="restream" class="tab-content">
+            <h1>Multi-Restream Destinations</h1>
+            <div id="restream-container"></div>
+            <button type="button" class="btn" style="background:#444; margin-bottom: 20px;" onclick="addRestream()">+
+                Add Destination</button>
+            <br>
+            <button class="btn" onclick="saveSettings()">Save Restream Settings</button>
+        </div>
+
+        <!-- Account Tab -->
+        <div id="account" class="tab-content">
+            <h1>Admin Account</h1>
+            <div class="form-group">
+                <label for="adminUser">Username</label>
+                <input type="text" id="adminUser">
+            </div>
+            <div class="form-group">
+                <label for="adminPass">New Password</label>
+                <input type="password" id="adminPass" placeholder="Leave empty to keep current">
+            </div>
+            <button class="btn" onclick="saveSettings()">Update Account</button>
+        </div>
+
+        <!-- Content Manager Tab (VOD) -->
+        <div id="content-manager" class="tab-content">
+            <h1>Manage VOD Content</h1>
+            <div style="display:flex; gap:20px;">
+                <!-- Form -->
+                <div style="flex:1; background:#252525; padding:20px; border-radius:8px;">
+                    <h3 style="margin-top:0;">Add New Movie/Video</h3>
+
+                    <div class="form-group">
+                        <label>Title</label>
+                        <input type="text" id="vodTitle" placeholder="Movie Title">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Description</label>
+                        <textarea id="vodDesc" rows="3" placeholder="Plot summary..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Category</label>
+                        <select id="vodCategory"
+                            style="width:100%; padding:10px; background:#333; border:1px solid #444; color:#fff; border-radius:6px;">
+                            <option value="movies">Movies</option>
+                            <option value="vod">Recent Uploads</option>
+                            <option value="kids">Kids</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Thumbnail Image</label>
+                        <div style="display:flex; gap:10px;">
+                            <input type="text" id="vodThumb" placeholder="/uploads/..." readonly
+                                style="background:#222; color:#777;">
+                            <button class="btn" onclick="triggerUpload('vodThumb', this)"
+                                style="background:#555;">Upload</button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Video File (MP4)</label>
+                        <div style="display:flex; gap:10px;">
+                            <input type="text" id="vodVideo" placeholder="/uploads/..." readonly
+                                style="background:#222; color:#777;">
+                            <button class="btn" onclick="triggerUpload('vodVideo', this)"
+                                style="background:#555;">Upload</button>
+                        </div>
+                    </div>
+
+                    <button class="btn" onclick="saveContent()">Publish Content</button>
+                </div>
+
+                <!-- List -->
+                <div style="flex:1;">
+                    <h3 style="margin-top:0;">Library</h3>
+                    <div id="vod-list" style="display:flex; flex-direction:column; gap:10px;">
+                        <!-- Content Items -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hidden File Input for generic uploads -->
+            <input type="file" id="genericUpload" style="display:none">
+        </div>
+    </div>
+
+    <script>
+        let currentSettings = {};
+
+        // Tab Switching
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+
+            document.getElementById(tabId).classList.add('active');
+
+            const navs = document.querySelectorAll('.nav-item');
+            if (tabId === 'general') navs[0].classList.add('active');
+            if (tabId === 'restream') navs[1].classList.add('active');
+            if (tabId === 'account') navs[2].classList.add('active');
+            if (tabId === 'content-manager') {
+                navs[3].classList.add('active');
+                loadContent();
+            }
+        }
+
+
+
+        // --- Content Manager Logic ---
+
+        let uploadTargetId = null;
+        let activeUploadBtn = null;
+        const genericUpload = document.getElementById('genericUpload');
+
+        if (genericUpload) {
+            genericUpload.addEventListener('change', async (e) => {
+                const file = e.target.files[0];
+                if (!file || !uploadTargetId) return;
+
+                let originalText = "Upload";
+                if (activeUploadBtn) {
+                    originalText = activeUploadBtn.innerText;
+                    activeUploadBtn.innerText = "Uploading...";
+                    activeUploadBtn.disabled = true;
+                }
+
+                const formData = new FormData();
+                formData.append('file', file);
+
+                try {
+                    const res = await fetch('/api/upload', { method: 'POST', body: formData });
+                    const result = await res.json();
+
+                    if (result.success) {
+                        document.getElementById(uploadTargetId).value = result.path;
+                    } else {
+                        alert("Upload failed: " + result.message);
+                    }
+                } catch (err) {
+                    console.error(err);
+                    alert("Upload error: " + err.message);
+                } finally {
+                    if (activeUploadBtn) {
+                        activeUploadBtn.innerText = originalText;
+                        activeUploadBtn.disabled = false;
+                    }
+                    genericUpload.value = ''; // reset
+                    activeUploadBtn = null; // clear ref
+                }
+            });
+        }
+
+        function triggerUpload(targetId, btn) {
+            uploadTargetId = targetId;
+            activeUploadBtn = btn;
+            document.getElementById('genericUpload').click();
+        }
+
+        async function saveContent() {
+            const payload = {
+                title: document.getElementById('vodTitle').value,
+                description: document.getElementById('vodDesc').value,
+                category: document.getElementById('vodCategory').value,
+                thumbnailUrl: document.getElementById('vodThumb').value,
+                videoUrl: document.getElementById('vodVideo').value
+            };
+
+            if (!payload.title || !payload.videoUrl) {
+                alert("Title and Video File are required!");
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/content', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const result = await res.json();
+
+                if (result.success) {
+                    alert("Content Published!");
+                    loadContent();
+                    // Reset form
+                    document.getElementById('vodTitle').value = '';
+                    document.getElementById('vodDesc').value = '';
+                    document.getElementById('vodThumb').value = '';
+                    document.getElementById('vodVideo').value = '';
+                } else {
+                    alert("Error: " + result.message);
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        function loadContent() {
+            const list = document.getElementById('vod-list');
+            list.innerHTML = 'Loading...';
+
+            fetch('/api/content')
+                .then(res => res.json())
+                .then(data => {
+                    list.innerHTML = '';
+                    if (!data || data.length === 0) {
+                        list.innerHTML = '<div style="color:#aaa;">No content found.</div>';
+                        return;
+                    }
+
+                    data.sort((a, b) => b.createdAt - a.createdAt).forEach(item => {
+                        const div = document.createElement('div');
+                        div.style.cssText = "background:#333; padding:10px; border-radius:6px; display:flex; gap:10px; align-items:flex-start;";
+
+                        // Thumb
+                        const thumb = item.thumbnailUrl ?
+                            `<div style="width:80px; height:45px; background:url('${item.thumbnailUrl}') center/cover; border-radius:4px;"></div>` :
+                            `<div style="width:80px; height:45px; background:#444; border-radius:4px; display:flex; align-items:center; justify-content:center;">🎬</div>`;
+
+                        div.innerHTML = `
+                            ${thumb}
+                            <div style="flex:1; overflow:hidden;">
+                                <div style="font-weight:bold; truncate;">${item.title}</div>
+                                <div style="font-size:0.8rem; color:#aaa;">${item.category}</div>
+                            </div>
+                            <button onclick="deleteContent('${item.id}')" style="background:#721c24; color:#fff; border:none; border-radius:4px; padding:5px 10px; cursor:pointer;">Del</button>
+                        `;
+                        list.appendChild(div);
+                    });
+                })
+                .catch(e => console.error(e));
+        }
+
+        async function deleteContent(id) {
+            if (!confirm("Are you sure you want to delete this content?")) return;
+
+            try {
+                const res = await fetch('/api/content/' + id, { method: 'DELETE' });
+                const result = await res.json();
+                if (result.success) loadContent();
+            } catch (e) { console.error(e); }
+        }
+
+        // ... (Load Data Logic remains) ...
+
+        // Logout
+        async function logout() {
+            await fetch('/api/logout', { method: 'POST' });
+            window.location.href = '/login.html';
+        }
+
+        // Load Data
+        fetch('/api/settings')
+            .then(res => {
+                if (res.status === 401) window.location.href = '/login.html';
+                return res.json();
+            })
+            .then(data => {
+                currentSettings = data;
+
+                // General
+                document.getElementById('title').value = data.title || '';
+                document.getElementById('description').value = data.description || '';
+                document.getElementById('runningText').value = data.runningText || '';
+                document.getElementById('logoUrl').value = data.logoUrl || '';
+                document.getElementById('streamKey').value = data.streamKey || 'stream';
+                document.getElementById('key-display').innerText = data.streamKey || 'stream';
+
+                // Account
+                document.getElementById('adminUser').value = data.adminUser || 'admin';
+
+                // Restream
+                renderRestreams();
+            })
+            .catch(err => console.error(err));
+
+        // Dynamic Stream Key Display Update
+        document.getElementById('streamKey').addEventListener('input', (e) => {
+            document.getElementById('key-display').innerText = e.target.value || '{key}';
+        });
+
+        // Logo Upload Logic
+        document.getElementById('logoUpload').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const res = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await res.json();
+
+                if (result.success) {
+                    document.getElementById('logoUrl').value = result.path;
+                    const msg = document.getElementById('msg-global');
+                    msg.style.display = 'block';
+                    msg.className = 'message success';
+                    msg.innerText = 'Logo uploaded successfully!';
+                    setTimeout(() => msg.style.display = 'none', 3000);
+                } else {
+                    alert('Upload failed: ' + result.message);
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Upload error');
+            }
+        });
+
+        // Restream Logic
+        function renderRestreams() {
+            const container = document.getElementById('restream-container');
+            container.innerHTML = '';
+
+            const configs = currentSettings.restreamConfigs || [];
+            configs.forEach((config, index) => {
+                const div = document.createElement('div');
+                div.style.cssText = 'background:#333; padding:15px; border-radius:8px; margin-bottom:15px; border:1px solid #444;';
+                div.innerHTML = `
+                <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                    <strong style="color:#aaa;">Destination #${index + 1}</strong>
+                    <button onclick="removeRestream(${index})" style="background:transparent; color:#ff4444; border:none; cursor:pointer;">&times; Remove</button>
+                </div>
+                <div class="form-group">
+                    <input type="text" placeholder="Name (e.g. YouTube)" value="${config.name || ''}" onchange="updateRestream(${index}, 'name', this.value)">
+                </div>
+                <div class="form-group">
+                    <input type="text" placeholder="RTMP URL" value="${config.url || ''}" onchange="updateRestream(${index}, 'url', this.value)">
+                </div>
+                <div class="form-group">
+                    <input type="text" placeholder="Stream Key (Optional)" value="${config.key || ''}" onchange="updateRestream(${index}, 'key', this.value)">
+                </div>
+                <label style="display:flex; align-items:center; cursor:pointer; color:#ccc;">
+                    <input type="checkbox" ${config.enabled ? 'checked' : ''} onchange="updateRestream(${index}, 'enabled', this.checked)">
+                    <span style="margin-left:8px;">Enable</span>
+                </label>
+            `;
+                container.appendChild(div);
+            });
+        }
+
+        window.addRestream = function () {
+            if (!currentSettings.restreamConfigs) currentSettings.restreamConfigs = [];
+            currentSettings.restreamConfigs.push({ name: '', url: '', key: '', enabled: true });
+            renderRestreams();
+        }
+
+        window.removeRestream = function (index) {
+            currentSettings.restreamConfigs.splice(index, 1);
+            renderRestreams();
+        }
+
+        window.updateRestream = function (index, key, value) {
+            currentSettings.restreamConfigs[index][key] = value;
+        }
+
+        // ... existing nav logic ...
+
+        window.copyToClipboard = function (text) {
+            navigator.clipboard.writeText(text);
+            alert("Copied!");
+        }
+
+        window.generateKey = function () {
+            const key = Math.random().toString(36).substring(2, 10);
+            document.getElementById('streamKey').value = key;
+        }
+
+        // Save Logic
+        async function saveSettings() {
+            // Gather General / Live Config
+            currentSettings.title = document.getElementById('title').value;
+            currentSettings.description = document.getElementById('description').value;
+            currentSettings.runningText = document.getElementById('runningText').value;
+
+            // Branding
+            currentSettings.appName = document.getElementById('appName').value;
+            currentSettings.logoUrl = document.getElementById('logoUrl').value;
+            currentSettings.faviconUrl = document.getElementById('faviconUrl').value;
+
+            currentSettings.liveThumbnail = document.getElementById('liveThumbnail').value;
+            currentSettings.streamKey = document.getElementById('streamKey').value;
+
+            // Gather Account
+            currentSettings.adminUser = document.getElementById('adminUser').value;
+            const pass = document.getElementById('adminPass').value;
+            if (pass) currentSettings.adminPass = pass;
+
+            try {
+                const res = await fetch('/api/settings', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(currentSettings)
+                });
+                const result = await res.json();
+
+                const msg = document.getElementById('msg-global');
+                msg.style.display = 'block';
+                if (result.success) {
+                    msg.className = 'message success';
+                    msg.innerText = 'Settings Saved Successfully!';
+                    setTimeout(() => msg.style.display = 'none', 3000);
+                } else {
+                    msg.className = 'message error';
+                    msg.innerText = 'Error saving settings';
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        // Logout
+        async function logout() {
+            await fetch('/api/logout', { method: 'POST' });
+            window.location.href = '/login.html';
+        }
+
+        // Initial Load
+        fetch('/api/settings')
+            .then(res => {
+                if (res.status === 401) window.location.href = '/login.html';
+                return res.json();
+            })
+            .then(data => {
+                currentSettings = data;
+
+                // General / Live Config
+                document.getElementById('title').value = data.title || '';
+                document.getElementById('description').value = data.description || '';
+                document.getElementById('runningText').value = data.runningText || '';
+
+                // Branding
+                document.getElementById('appName').value = data.appName || 'Vidio Clone';
+                document.getElementById('logoUrl').value = data.logoUrl || '';
+                document.getElementById('faviconUrl').value = data.faviconUrl || '';
+
+                document.getElementById('liveThumbnail').value = data.liveThumbnail || '';
+                // document.getElementById('logoUrl').value = data.logoUrl || '';
+
+                document.getElementById('streamKey').value = data.streamKey || 'stream';
+
+                // RTMP Url
+                const host = window.location.hostname;
+                document.getElementById('rtmpUrl').value = `rtmp://${host}/live/`;
+
+                // Account
+                document.getElementById('adminUser').value = data.adminUser || 'admin';
+
+                // Restream
+                renderRestreams();
+            })
+            .catch(err => console.error(err));
+
+    </script>
+</body>
+
+</html>

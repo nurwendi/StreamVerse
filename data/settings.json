@@ -1,0 +1,12 @@
+{
+  "title": "StreamVerse Live",
+  "description": "Welcome to StreamVerse - The future of streaming.",
+  "runningText": "StreamVerse Broadcast",
+  "logoUrl": "/uploads/logo_custom.png",
+  "restreamConfigs": [],
+  "streamKey": "stream",
+  "adminUser": "admin",
+  "liveThumbnail": "/uploads/default_live.jpg",
+  "appName": "StreamVerse",
+  "faviconUrl": "/uploads/favicon_v3.png"
+}
