@@ -42,8 +42,11 @@
     # Development mode (with nodemon)
     npm run dev
 
-    # Production mode
+    # Production mode (Standard)
     npm start
+
+    # Production mode (with PM2)
+    pm2 start ecosystem.config.js
     ```
 
 2.  **Access the Application**:
